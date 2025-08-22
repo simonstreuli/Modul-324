@@ -34,11 +34,11 @@ Ein Frontend wird nicht implementiert.
 
 **CI/CD Prozesse**
 
-- GitHub Actions oder GitLab Pipelines (Build, Tests, Deployment)
+- GitHub Actions (Build, Tests, Deployment)
 
 **Kanban Board**
 
-- GitHub Projects oder GitLab Board
+- GitHub Projects
 - Phasen: _To Do_, _In Progress_, _Review_, _Done_
 
 **Zeit loggen**
