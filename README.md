@@ -3,7 +3,7 @@
 ## Projekt: Ticketsystem
 
 Wir entwickeln ein **Ticketsystem** basierend auf **Spring Boot** als Backend und **MongoDB** als Datenbank.
-Das Projekt wird als Web-API umgesetzt, jede User Story beschreibt einen eigenen Endpoint.
+Das Projekt wird als Web-API umgesetzt, jede User Story beschreibt einen eigenen Endpoint.  
 Ein Frontend wird nicht implementiert.
 
 ---

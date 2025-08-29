@@ -49,3 +49,9 @@ Kundenfeedback konnte wesentlich schneller umgesetzt werden, was die Zufriedenhe
 
 **Welche Rolle spielte die CEO, Maria Schmidt, in der erfolgreichen Umsetzung des CALMS-Modells?**  
 Maria Schmidt war die treibende Kraft hinter der Transformation. Sie initiierte die Veränderungen, organisierte kulturelle Massnahmen und setzte die strategische Ausrichtung am CALMS-Modell fest. Ihre Rolle war entscheident für die Umsetzung des CALMS-Modells.
+
+# Ergänzung: CALMS-Zusammenfassung
+
+Wir haben das **CALMS-Modell auch separat zusammengefasst**, um die Grundlagen noch einmal übersichtlich darzustellen:
+
+👉 [Zur CALMS-Zusammenfassung](./CALMS.md)
