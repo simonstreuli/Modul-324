@@ -59,3 +59,9 @@ Der "Second Way" beschleunigt die Fehlerbehebung in einem agilen Prozess. Durch 
 #### 12. Erörtern Sie, wie die Prinzipien von "The Three Ways" in einer Organisation, die stark hierarchisch strukturiert ist, umgesetzt werden können.
 
 In einer hierarchischen Organisation ist die Umsetzung schwierig, aber möglich. Die Führungsebene muss die Initiative unterstützen und Vertrauen in die Teams setzen. Man sollte mit einem kleinen Pilotprojekt beginnen, um den Erfolg zu zeigen. Wichtig ist auch, Transparenz von oben nach unten zu schaffen und die Teams zu ermächtigen, Entscheidungen selbst zu treffen, die nicht unbedingt von einem Manager genehmigt werden müssen.
+
+# Ergänzung: Three Ways Zusammenfassung
+
+Wir haben die **Three Ways** auch separat zusammengefasst, um die Grundlagen noch einmal übersichtlich darzustellen:
+
+👉 [Zur Three Ways-Zusammenfassung](./THREEWAYS.md)
