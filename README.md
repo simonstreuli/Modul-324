@@ -46,6 +46,10 @@ Ein Frontend wird nicht implementiert.
 - Pro Modultag wird die Zeit erfasst, pro Task aufgeschlüsselt.
 - Siehe [Zeitlogging](./Zeitlogging/).
 
+**Lernjournal**
+
+- Mouad: [Mouad Bourbian / Modul 324 – GitLab](https://gitlab.com/Mouad.Bourbian/modul-324-mouad-bourbian)
+
 **Dokumentation**
 
 - Siehe [Dokumentation](./Dokumentation/)
