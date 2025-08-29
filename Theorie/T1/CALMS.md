@@ -1,5 +1,7 @@
 # CALMS-Modell – Zusammenfassung
 
+![image](../../images/devops-calms.png)
+
 Das **CALMS-Modell** ist ein Rahmenwerk, das die Leitprinzipien von **DevOps** beschreibt.  
 Es steht für **Culture, Automation, Lean, Measurement, Sharing**.  
 Manchmal findet man auch nur **CAMS**, da _Lean_ als optional betrachtet wird.
