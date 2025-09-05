@@ -38,6 +38,14 @@ Ein **MVP** ist ein Produkt mit möglichst geringem, aber ausreichend wertvollem
 
 Das Beispiel zeigt, dass ein MVP nicht nur ein unvollständiger Teil des Endprodukts sein sollte (oben), sondern bereits von Anfang an einen echten Nutzen bieten muss (unten). Statt erst ein Auto in Einzelschritten wie Achsen und Karosserie zu entwickeln, wird der Nutzen "Fortbewegung" direkt in Form eines Skateboards, Fahrrads oder Motorrads geliefert und schrittweise verbessert.
 
+---
+
+## Zusammenfassung
+
+Eine ausführlichere Zusammenfassung befindet sich in der [DevOps-Prozess](./DevOps-Prozess.md)
+
+---
+
 ## Quellen
 
 - [GeeksforGeeks – DevOps Lifecycle](https://www.geeksforgeeks.org/devops/devops-lifecycle/)
