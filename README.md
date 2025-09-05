@@ -57,3 +57,7 @@ Ein Frontend wird nicht implementiert.
 **Theorie**
 
 - Siehe [Theorie](./Theorie/)
+
+**Aufgaben**
+
+- Siehe [Aufgaben](./Aufgaben/)
