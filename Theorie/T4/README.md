@@ -96,8 +96,8 @@ Quelle: [A successful Git branching model – Vincent Driessen](https://nvie.com
 
 **Warum?**
 
-- Rückverfolgbarkeit (Wer hat was warum geändert?)
-- Automatisierte Statusupdates
+- Rückverfolgbarkeit: Wer hat was warum geändert?
+- Automatisierte Statusupdates (Issue schließen, Zeiten loggen, Transitions)
 
 **Best Practices & Konventionen**
 
@@ -129,6 +129,11 @@ Quelle: [Atlassian – Smart Commits](https://support.atlassian.com/bitbucket-cl
 - FF/Rebase → linear, weniger sichtbare Bündel
 - Merge-Commit → klarer Feature-Zusammenhang
 - Squash → kompakte Historie, Verlust von Zwischen-Commits
+
+**Wann welche? (Daumenregeln)**
+- Produkt-/Lib-Repos mit Release-Audits → No-FF oder Squash für klare Einheiten
+- Hohe Commit-Granularität, kleine PRs → Rebase & FF
+- Monorepos mit vielen Teams → oft Merge-Commit für Kontext
 
 Quelle: [Git Documentation – Merge](https://git-scm.com/docs/git-merge)
 
