@@ -13,6 +13,7 @@
 
 - **T3 – DevOps Prozesse:** Mouad arbeitet daran
 - **T4 – Continuous Integration:** Fran und Noris arbeiten daran
+- **Zeitlogging** Jeder individuell
 
 ## Vorgehen
 
