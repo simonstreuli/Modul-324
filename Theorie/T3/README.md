@@ -38,5 +38,5 @@ Ein **MVP** ist ein Produkt mit möglichst geringem, aber ausreichend wertvollem
 - [Rapid7 – Software Development Life Cycle (SDLC)](https://www.rapid7.com/de/cybersecurity-grundlagen/software-development-life-cycle-sdlc/)
 - [BrowserStack – DevOps Lifecycle](https://www.browserstack.com/guide/devops-lifecycle)
 - [Splunk – Software Development Lifecycle (SDLC)](https://www.splunk.com/de_de/blog/learn/software-development-lifecycle-sdlc.html)
-- [GitLab – DevOps]((https://about.gitlab.com/de-de/topics/devops/))
+- [GitLab – DevOps](https://about.gitlab.com/de-de/topics/devops/)
 - [JFrog – SDLC](https://jfrog.com/de/learn/sdlc/)
