@@ -28,11 +28,11 @@ mongoose
   .catch((error) => console.log(`${error} did not connect`));
 
 //Middleware
+
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("common"));
 
-//app.use("/api/users", userRoute);
-//app.use("/api/auth", authRoute);
-//app.use("/api/posts", postRoute);
-//app.use("/api/upload", uploadRoute);
+// Ticket API routes
+const ticketRoute = require("./routes/tickets");
+app.use("/api/tickets", ticketRoute);
