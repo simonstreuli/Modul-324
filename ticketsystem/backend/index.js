@@ -1,17 +1,17 @@
-const express = require("express");
+const express = require('express');
 const app = express();
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const cors = require("cors");
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const cors = require('cors');
 
 dotenv.config();
 
 // Erlaubt Zugriff von localhost:3000
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: 'http://localhost:3000',
   })
 );
 
@@ -31,8 +31,8 @@ mongoose
 
 app.use(express.json());
 app.use(helmet());
-app.use(morgan("common"));
+app.use(morgan('common'));
 
 // Ticket API routes
-const ticketRoute = require("./routes/tickets");
-app.use("/api/tickets", ticketRoute);
+const ticketRoute = require('./routes/ticket');
+app.use('/api/tickets', ticketRoute);
