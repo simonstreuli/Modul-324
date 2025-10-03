@@ -31,4 +31,10 @@ describe('Ticket API', () => {
     expect(res.body.title).toBe('Test');
     ticketId = res.body._id;
   });
+
+  it('should get all tickets', async () => {
+    const res = await request(app).get('/api/tickets');
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
 });
