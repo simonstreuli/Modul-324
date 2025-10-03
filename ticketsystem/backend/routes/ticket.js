@@ -30,6 +30,9 @@ router.get("/:id", async (req, res) => {
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
     res.json(ticket);
   } catch (err) {
+    if (err.name === "CastError") {
+      return res.status(400).json({ error: "Invalid ticket ID" });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -43,7 +46,10 @@ router.put("/:id", async (req, res) => {
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
     res.json(ticket);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    if (err.name === "CastError") {
+      return res.status(400).json({ error: "Invalid ticket ID" });
+    }
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -54,6 +60,9 @@ router.delete("/:id", async (req, res) => {
     if (!ticket) return res.status(404).json({ error: "Ticket not found" });
     res.json({ message: "Ticket deleted" });
   } catch (err) {
+    if (err.name === "CastError") {
+      return res.status(400).json({ error: "Invalid ticket ID" });
+    }
     res.status(500).json({ error: err.message });
   }
 });
