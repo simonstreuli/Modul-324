@@ -37,4 +37,28 @@ describe('Ticket API', () => {
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
   });
+   it('should get a ticket by id', async () => {
+    const res = await request(app).get(`/api/tickets/${ticketId}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body._id).toBe(ticketId);
+  });
+ 
+  it('should update a ticket', async () => {
+    const res = await request(app)
+      .put(`/api/tickets/${ticketId}`)
+      .send({ status: 'closed' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.status).toBe('closed');
+  });
+ 
+  it('should delete a ticket', async () => {
+    const res = await request(app).delete(`/api/tickets/${ticketId}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe('Ticket deleted');
+  });
+ 
+  it('should return 400 for invalid ticket id', async () => {
+    const res = await request(app).get('/api/tickets/invalidid');
+    expect(res.statusCode).toBe(400);
+  });
 });
