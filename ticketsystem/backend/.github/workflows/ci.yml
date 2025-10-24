@@ -1,8 +1,12 @@
 name: Node.js Package
 
 on:
+  # Automatisch bei Release
   release:
     types: [created]
+
+  # Manuell im Actions-Tab ausführbar
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,11 +16,26 @@ jobs:
         working-directory: ticketsystem/backend
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci
-      - run: npm test
+
+      # Zeigt aktuelle Position und Dateien
+      - name: Verify working directory
+        run: pwd && ls -l
+
+      # Installiert Dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Führt Tests aus und zeigt Logs
+      - name: Run tests with logs
+        run: |
+          echo "🧪 Running Jest tests..."
+          npx jest --verbose --runInBand
+        env:
+          CI: true
 
   publish-gpr:
     needs: build
@@ -29,11 +48,16 @@ jobs:
         working-directory: ticketsystem/backend
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://npm.pkg.github.com/
-      - run: npm ci
-      - run: npm publish
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish package
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
