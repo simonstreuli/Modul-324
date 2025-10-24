@@ -14,6 +14,7 @@ jobs:
     defaults:
       run:
         working-directory: ticketsystem/backend
+    environment: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') && 'production' || github.ref == 'refs/heads/develop' && 'acceptance' || 'development' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
