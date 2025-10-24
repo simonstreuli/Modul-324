@@ -28,22 +28,22 @@ jobs:
         run: npm ci
       - name: Verify Production Secrets
         run: |
-          if [ -z "$MONGO_URL_PROD" ]; then
-            echo "❌ MONGO_URL_PROD is not set!"
+          if [ -z "$MONGO_URL" ]; then
+            echo "❌ MONGO_URL is not set!"
             exit 1
           else
-            echo "✅ MONGO_URL_PROD is set"
+            echo "✅ MONGO_URL is set"
           fi
 
-          if [ -z "$PORT_PROD" ]; then
-            echo "❌ PORT_PROD is not set!"
+          if [ -z "$PORT" ]; then
+            echo "❌ PORT is not set!"
             exit 1
           else
-            echo "✅ PORT_PROD is set"
+            echo "✅ PORT is set"
           fi
         env:
-          MONGO_URL_PROD: ${{ secrets.MONGO_URL }}
-          PORT_PROD: ${{ secrets.PORT }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          PORT: ${{ vars.PORT }}
 
       - name: Run tests
         run: npm test
