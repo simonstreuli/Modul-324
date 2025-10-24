@@ -14,7 +14,7 @@ jobs:
     defaults:
       run:
         working-directory: ticketsystem/backend
-    environment: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/') && 'production' || github.ref == 'refs/heads/develop' && 'acceptance' || 'development' }}
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,6 +26,24 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+      - name: Verify Production Secrets
+        run: |
+          if [ -z "$MONGO_URL_PROD" ]; then
+            echo "❌ MONGO_URL_PROD is not set!"
+            exit 1
+          else
+            echo "✅ MONGO_URL_PROD is set"
+          fi
+
+          if [ -z "$PORT_PROD" ]; then
+            echo "❌ PORT_PROD is not set!"
+            exit 1
+          else
+            echo "✅ PORT_PROD is set"
+          fi
+        env:
+          MONGO_URL_PROD: ${{ secrets.MONGO_URL }}
+          PORT_PROD: ${{ secrets.PORT }}
 
       - name: Run tests
         run: npm test
