@@ -1,78 +1,58 @@
-name: Node.js Package
+name: CI Pipeline
 
 on:
-  # Automatisch bei Release
-  release:
-    types: [created]
-
-  # Manuell im Actions-Tab ausführbar
+  push:
+    branches: [ main, develop, copilot/** ]
+  pull_request:
+    branches: [ main, develop ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  lint-and-test:
+    name: Lint and Test Backend
     runs-on: ubuntu-latest
+    
+    # MongoDB service container for tests
+    services:
+      mongodb:
+        image: mongo:7.0
+        env:
+          MONGO_INITDB_ROOT_USERNAME: testuser
+          MONGO_INITDB_ROOT_PASSWORD: testpassword
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     defaults:
       run:
-        working-directory: ticketsystem/backend
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        working-directory: ./ticketsystem/backend
 
-      - name: Verify working directory
-        run: pwd && ls -l
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./ticketsystem/backend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-      - name: Verify Production Secrets
-        run: |
-          if [ -z "$MONGO_URL" ]; then
-            echo "❌ MONGO_URL is not set!"
-            exit 1
-          else
-            echo "✅ MONGO_URL is set"
-          fi
 
-          if [ -z "$PORT" ]; then
-            echo "❌ PORT is not set!"
-            exit 1
-          else
-            echo "✅ PORT is set"
-          fi
-        env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          PORT: ${{ vars.PORT }}
+      - name: Run ESLint
+        run: npm run lint
 
       - name: Run tests
+        env:
+          MONGO_URL: mongodb://testuser:testpassword@localhost:27017/ticketsystem-test?authSource=admin
+          NODE_ENV: test
         run: npm test
-        env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          PORT: ${{ vars.PORT }}
-          CI: true
-
-  publish-gpr:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    defaults:
-      run:
-        working-directory: ticketsystem/backend
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: https://npm.pkg.github.com/
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Publish package
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
