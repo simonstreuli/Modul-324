@@ -29,6 +29,10 @@ jobs:
       - name: Run tests
         run: npm test
         env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          PORT: ${{ vars.PORT }}
+
+        env:
           CI: true
 
   publish-gpr:
