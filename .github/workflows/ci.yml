@@ -16,24 +16,18 @@ jobs:
         working-directory: ticketsystem/backend
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Zeigt aktuelle Position und Dateien
       - name: Verify working directory
         run: pwd && ls -l
 
-      # Installiert Dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Führt Tests aus und zeigt Logs
-      - name: Run tests with logs
-        run: |
-          echo "🧪 Running Jest tests..."
-          npx jest --verbose --runInBand
+      - name: Run tests
+        run: npm test
         env:
           CI: true
 
