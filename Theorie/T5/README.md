@@ -62,10 +62,6 @@ Quelle: [Atlassian – Continuous Delivery](https://www.atlassian.com/continuous
 
 Deployment-Strategien werden verwendet, um neue Softwareversionen zu releasen und dabei Risiken und Downtime zu minimieren. Gängige Strategien sind das Blue/Green-Deployment und das Canary-Deployment.
 
-![Baseline before deployment: users → load balancer → identical v1 instances](./assets/03-baseline-before-deployment.gif)
-
-Quelle: [Octopus Deploy – Canary Deployments](https://octopus.com/devops/software-deployments/canary-deployment/)
-
 ## Blue/Green-Deployment
 
 ![Blue/green architecture (before switch)](./assets/02-blue-green-architecture-before-switch.gif)
@@ -77,6 +73,10 @@ Blue/Green-Deployment ist eine Release-Strategie, die Downtime reduziert, indem 
 Diese Technik ermöglicht ein Deployment mit nahezu keiner Downtime. Ein Rollback wird erreicht, indem der Traffic zurück auf die vorherige Version (Blue) geleitet wird, die noch immer läuft. Die grösste Herausforderung dieses Ansatzes sind die Ressourcenkosten und die Komplexität der Wartung von zwei vollständigen Produktionsumgebungen.
 
 ## Canary-Deployment
+
+![Baseline before deployment: users → load balancer → identical v1 instances](./assets/03-baseline-before-deployment.gif)
+
+Quelle: [Octopus Deploy – Canary Deployments](https://octopus.com/devops/software-deployments/canary-deployment/)
 
 Canary-Deployment ist eine Strategie, bei der eine neue Softwareversion schrittweise für eine kleine Untergruppe von Usern oder Servern (Subset) freigegeben wird, bevor sie der gesamten User-Basis zur Verfügung gestellt wird. Der Begriff leitet sich von der Praxis des "Kanarienvogels im Kohlebergwerk" ab, bei der die kleine User-Gruppe als Frühwarnsystem für potenzielle Probleme dient.
 
