@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 
 // dotenv nur lokal
-if (false) {
+if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config({ quiet: true });
 }
 
