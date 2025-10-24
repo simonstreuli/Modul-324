@@ -1,38 +1,38 @@
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cors = require('cors');
 
-dotenv.config();
+// dotenv nur lokal
+if (false) {
+  require('dotenv').config({ quiet: true });
+}
 
-// Erlaubt Zugriff von localhost:3000
-app.use(
-  cors({
-    origin: 'http://localhost:3000',
-  })
-);
-
-// Database connection
-const PORT = process.env.PORT || 6001;
-mongoose
-  .connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    app.listen(PORT, () => console.log(`Server running on Port: ${PORT}`));
-  })
-  .catch((error) => console.log(`${error} did not connect`));
-
-//Middleware
-
+// Middleware
 app.use(express.json());
 app.use(helmet());
 app.use(morgan('common'));
+app.use(cors({ origin: 'http://localhost:3000' }));
 
-// Ticket API routes
+// Ticket API
 const ticketRoute = require('./routes/ticket');
 app.use('/api/tickets', ticketRoute);
+
+// DB + Server
+const PORT = process.env.PORT || 6001;
+if (!process.env.MONGO_URL) {
+  console.error('MONGO_URL not set!');
+  process.exit(1);
+}
+
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => {
+    app.listen(PORT, () => console.log(`Server running on Port: ${PORT}`));
+  })
+  .catch((error) => {
+    console.error('MongoDB connection failed:', error);
+    process.exit(1);
+  });
