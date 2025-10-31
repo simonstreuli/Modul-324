@@ -117,7 +117,8 @@ jobs:
 
       - name: Extract version from package.json
         id: package-version
-        run: echo "version=$(node -p \"require('./ticketsystem/backend/package.json').version\")" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(node -p \"require('./ticketsystem/backend/package.json').version\")" >> $GITHUB_OUTPUT
 
       - name: Determine Docker tags
         id: docker-tags
@@ -157,7 +158,8 @@ jobs:
 
       - name: Extract version from package.json
         id: package-version
-        run: echo "version=$(node -p \"require('./ticketsystem/backend/package.json').version\")" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(node -p \"require('./ticketsystem/backend/package.json').version\")" >> $GITHUB_OUTPUT
 
       - name: Check if tag exists
         id: check-tag
