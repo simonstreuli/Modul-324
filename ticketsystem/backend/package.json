@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:unit": "jest --testPathIgnorePatterns=integration.test.js",
+    "test:integration": "jest integration.test.js",
     "test:coverage": "jest --coverage",
     "dev": "nodemon server.js",
     "start": "node server.js",

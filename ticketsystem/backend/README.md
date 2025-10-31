@@ -89,11 +89,29 @@ curl -X POST http://localhost:6001/api/employees \
 
 ### Running Tests
 
-Run the complete test suite:
+The project includes both unit tests and integration tests:
 
 ```bash
+# Run all tests (unit + integration)
 npm test
+
+# Run only unit tests (fast, no database required)
+npm run test:unit
+
+# Run only integration tests (requires MongoDB)
+npm run test:integration
+
+# Run tests with coverage report
+npm run test:coverage
 ```
+
+**For integration tests**, ensure MongoDB is running:
+
+```bash
+docker compose -f docker-compose.mongodb.yml up -d
+```
+
+See **[Integration Tests Guide](docs/integration-tests.md)** for detailed information about integration testing.
 
 Check code quality:
 
