@@ -1,25 +1,41 @@
 {
   "name": "backend",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "test:coverage": "jest --coverage",
+    "dev": "nodemon server.js",
+    "start": "node server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "build:swagger": "node swagger.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "testMatch": [
+      "**/tests/**/*.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
+    "axios": "^1.12.2",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.18.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
@@ -28,6 +44,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.4.0",
     "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
     "prettier": "3.6.2",
     "supertest": "^7.1.4"
   }

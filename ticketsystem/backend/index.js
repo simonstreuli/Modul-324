@@ -1,38 +1,25 @@
 const express = require('express');
 const app = express();
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
 
-dotenv.config();
-
-// Erlaubt Zugriff von localhost:3000
-app.use(
-  cors({
-    origin: 'http://localhost:3000',
-  })
-);
-
-// Database connection
-const PORT = process.env.PORT || 6001;
-mongoose
-  .connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    app.listen(PORT, () => console.log(`Server running on Port: ${PORT}`));
-  })
-  .catch((error) => console.log(`${error} did not connect`));
-
-//Middleware
-
+// Middleware
 app.use(express.json());
 app.use(helmet());
 app.use(morgan('common'));
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(require('./swagger.json'))
+);
 
-// Ticket API routes
+// Employee API routes (Microservice 1)
+const employeeRoute = require('./routes/employee');
+app.use('/api/employees', employeeRoute);
+
+// Ticket API routes (Microservice 2)
 const ticketRoute = require('./routes/ticket');
 app.use('/api/tickets', ticketRoute);
+
+module.exports = app;

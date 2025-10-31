@@ -10,7 +10,7 @@ Ein Frontend wird nicht implementiert.
 
 ## Ordnerstruktur
 
-- [Code](./Code/) – Quellcode des Projekts
+- [Code](./ticketsystem/backend) – Quellcode des Projekts
 - [Dokumentation](./Dokumentation/) – Markdown-Dokumente zur Projekt- und Theorie-Dokumentation
 - [Theorie](./Theorie/) – Theorieblöcke und Lerninhalte
 - [Zeitlogging](./Zeitlogging/) – Aufzeichnung der täglichen Arbeitszeit

@@ -11,6 +11,7 @@ module.exports = [
       globals: {
         ...globals.node,
         ...globals.es2022,
+        ...globals.jest,
       },
     },
     rules: {
