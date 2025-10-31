@@ -195,6 +195,18 @@ jobs:
     needs: lint-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
 
+    # MongoDB service container for tests
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     permissions:
       pages: write
       id-token: write
