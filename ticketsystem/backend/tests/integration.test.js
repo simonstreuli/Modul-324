@@ -31,7 +31,7 @@ describe('Integration Tests', () => {
 
     // Start the server so internal API calls work
     server = app.listen(config.port);
-  });
+  }, 30000);
 
   // Clean up database before each test
   beforeEach(async () => {
@@ -46,7 +46,7 @@ describe('Integration Tests', () => {
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }
-  });
+  }, 30000);
 
   describe('Employee Integration Tests', () => {
     it('should create an employee and persist it to the database', async () => {
