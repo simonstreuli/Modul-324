@@ -5,6 +5,8 @@ const Employee = require('../models/Employee');
 const Ticket = require('../models/Ticket');
 const config = require('../config');
 
+jest.mock('../swagger.json', () => ({}), { virtual: true });
+
 /**
  * Integration Tests
  *
