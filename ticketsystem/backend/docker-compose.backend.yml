@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-dev
+    ports:
+      - '6001:6001'
+    environment:
+      - PORT=6001
+      - HOST_URL=localhost:6001
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://host.docker.internal:27017/ticketsystem

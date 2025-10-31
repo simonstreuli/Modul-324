@@ -1,2 +1,30 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variable files
 .env
-/node_modules
+.env.*
+!.env.example
+
+# Swagger files
+swagger.json
+
+# miscellaneous
+*.DS_Store

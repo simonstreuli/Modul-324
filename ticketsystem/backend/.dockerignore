@@ -1,0 +1,44 @@
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm/
+
+# IDE files
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Environment and config files
+.env*
+
+# Version control and CI/CD
+.git/
+.github/
+.gitattributes
+.gitignore
+
+# Test and lint files
+tests/
+jest*
+coverage/
+.eslint*
+.prettier*
+
+# Docker and Compose files
+Dockerfile*
+docker-compose*.yml
+docker-compose*.yaml
+
+# Documentation and markdown
+*.md
+README*
+CHANGELOG*
+LICENSE*
+
+# Miscellaneous
+npm-debug.log*
+*.DS_Store
