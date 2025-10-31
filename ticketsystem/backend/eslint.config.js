@@ -11,6 +11,7 @@ module.exports = [
       globals: {
         ...globals.node,
         ...globals.es2022,
+        ...globals.jest,
       },
     },
     rules: {
@@ -22,14 +23,6 @@ module.exports = [
       'no-var': 'error',
       eqeqeq: 'warn',
       curly: 'warn',
-    },
-  },
-  {
-    files: ['tests/**/*.js', '**/*.test.js', '**/*.spec.js'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-      },
     },
   },
   eslintPluginPrettierRecommended,
