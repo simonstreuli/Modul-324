@@ -116,8 +116,8 @@ For more detailed information, see the documentation in the `/docs` folder:
 Pull and run the latest image from GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/simonstreuli/ticketsystem:latest
-docker run -d -p 6001:6001 --env-file .env ghcr.io/simonstreuli/ticketsystem:latest
+docker pull ghcr.io/simonstreuli/modul-324:latest
+docker run -d -p 6001:6001 --env-file .env ghcr.io/simonstreuli/modul-324:latest
 ```
 
 See the **[Docker Guide](docs/docker.md)** for detailed deployment instructions.

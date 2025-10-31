@@ -9,7 +9,7 @@ The easiest way to run the application is to use the pre-built Docker image from
 ### Pull the Latest Image
 
 ```bash
-docker pull ghcr.io/simonstreuli/ticketsystem:latest
+docker pull ghcr.io/simonstreuli/modul-324:latest
 ```
 
 ### Run the Container
@@ -22,7 +22,7 @@ docker run -d \
   -e MONGO_URI=mongodb://host.docker.internal:27017/ticketsystem \
   -e HOST_URL=localhost:6001 \
   --name ticketsystem \
-  ghcr.io/simonstreuli/ticketsystem:latest
+  ghcr.io/simonstreuli/modul-324:latest
 ```
 
 ### Run with Environment File
@@ -34,7 +34,7 @@ docker run -d \
   -p 6001:6001 \
   --env-file .env \
   --name ticketsystem \
-  ghcr.io/simonstreuli/ticketsystem:latest
+  ghcr.io/simonstreuli/modul-324:latest
 ```
 
 ## Available Image Tags
@@ -50,7 +50,7 @@ The following tags are available in GitHub Container Registry:
 ### Pull a Specific Version
 
 ```bash
-docker pull ghcr.io/simonstreuli/ticketsystem:v1.0.2
+docker pull ghcr.io/simonstreuli/modul-324:v1.0.2
 ```
 
 ## Required Environment Variables
