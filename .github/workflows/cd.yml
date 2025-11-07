@@ -1,0 +1,502 @@
+name: AWS Deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy-to-aws:
+    name: Deploy to AWS EC2 with Load Balancer
+    runs-on: ubuntu-latest
+    # Only run if CI workflow completed successfully on main/develop or if manually triggered
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event.workflow_run.conclusion == 'success' && 
+       (github.event.workflow_run.head_branch == 'main' || 
+        github.event.workflow_run.head_branch == 'develop'))
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_PRIVATE_KEY }}" > ~/.ssh/deploy.pem
+          chmod 600 ~/.ssh/deploy.pem
+
+      - name: Check and create VPC if needed
+        id: vpc
+        run: |
+          # Check if VPC with our tag already exists
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=tag:Name,Values=ticketsystem-vpc" \
+            --query 'Vpcs[0].VpcId' \
+            --output text)
+
+          if [ "$VPC_ID" == "None" ] || [ -z "$VPC_ID" ]; then
+            echo "Creating new VPC..."
+            VPC_ID=$(aws ec2 create-vpc \
+              --cidr-block 10.0.0.0/16 \
+              --tag-specifications 'ResourceType=vpc,Tags=[{Key=Name,Value=ticketsystem-vpc}]' \
+              --query 'Vpc.VpcId' \
+              --output text)
+
+            # Enable DNS hostnames
+            aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames
+
+            # Create Internet Gateway
+            IGW_ID=$(aws ec2 create-internet-gateway \
+              --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value=ticketsystem-igw}]' \
+              --query 'InternetGateway.InternetGatewayId' \
+              --output text)
+
+            aws ec2 attach-internet-gateway --vpc-id $VPC_ID --internet-gateway-id $IGW_ID
+
+            # Create subnet
+            SUBNET_ID=$(aws ec2 create-subnet \
+              --vpc-id $VPC_ID \
+              --cidr-block 10.0.1.0/24 \
+              --availability-zone us-east-1a \
+              --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=ticketsystem-subnet-1}]' \
+              --query 'Subnet.SubnetId' \
+              --output text)
+
+            # Create second subnet in different AZ for load balancer
+            SUBNET_ID_2=$(aws ec2 create-subnet \
+              --vpc-id $VPC_ID \
+              --cidr-block 10.0.2.0/24 \
+              --availability-zone us-east-1b \
+              --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=ticketsystem-subnet-2}]' \
+              --query 'Subnet.SubnetId' \
+              --output text)
+
+            # Enable auto-assign public IP
+            aws ec2 modify-subnet-attribute --subnet-id $SUBNET_ID --map-public-ip-on-launch
+            aws ec2 modify-subnet-attribute --subnet-id $SUBNET_ID_2 --map-public-ip-on-launch
+
+            # Create route table
+            RTB_ID=$(aws ec2 create-route-table \
+              --vpc-id $VPC_ID \
+              --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=ticketsystem-rtb}]' \
+              --query 'RouteTable.RouteTableId' \
+              --output text)
+
+            # Create route to internet gateway
+            aws ec2 create-route --route-table-id $RTB_ID --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID
+
+            # Associate route table with subnets
+            aws ec2 associate-route-table --subnet-id $SUBNET_ID --route-table-id $RTB_ID
+            aws ec2 associate-route-table --subnet-id $SUBNET_ID_2 --route-table-id $RTB_ID
+          else
+            echo "VPC already exists: $VPC_ID"
+            SUBNET_ID=$(aws ec2 describe-subnets \
+              --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ticketsystem-subnet-1" \
+              --query 'Subnets[0].SubnetId' \
+              --output text)
+            SUBNET_ID_2=$(aws ec2 describe-subnets \
+              --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=ticketsystem-subnet-2" \
+              --query 'Subnets[0].SubnetId' \
+              --output text)
+          fi
+
+          echo "vpc_id=$VPC_ID" >> $GITHUB_OUTPUT
+          echo "subnet_id=$SUBNET_ID" >> $GITHUB_OUTPUT
+          echo "subnet_id_2=$SUBNET_ID_2" >> $GITHUB_OUTPUT
+
+      - name: Check and create Security Group if needed
+        id: sg
+        run: |
+          VPC_ID="${{ steps.vpc.outputs.vpc_id }}"
+
+          # Check if security group exists
+          SG_ID=$(aws ec2 describe-security-groups \
+            --filters "Name=group-name,Values=ticketsystem-sg" "Name=vpc-id,Values=$VPC_ID" \
+            --query 'SecurityGroups[0].GroupId' \
+            --output text)
+
+          if [ "$SG_ID" == "None" ] || [ -z "$SG_ID" ]; then
+            echo "Creating new Security Group..."
+            SG_ID=$(aws ec2 create-security-group \
+              --group-name ticketsystem-sg \
+              --description "Security group for ticketsystem" \
+              --vpc-id $VPC_ID \
+              --tag-specifications 'ResourceType=security-group,Tags=[{Key=Name,Value=ticketsystem-sg}]' \
+              --query 'GroupId' \
+              --output text)
+
+            # Allow SSH (Note: For production, restrict to specific IPs)
+            aws ec2 authorize-security-group-ingress \
+              --group-id $SG_ID \
+              --protocol tcp \
+              --port 22 \
+              --cidr 0.0.0.0/0
+
+            # Allow HTTP from internet (for load balancer)
+            aws ec2 authorize-security-group-ingress \
+              --group-id $SG_ID \
+              --protocol tcp \
+              --port 80 \
+              --cidr 0.0.0.0/0
+
+            # Allow app port only from within VPC
+            aws ec2 authorize-security-group-ingress \
+              --group-id $SG_ID \
+              --protocol tcp \
+              --port 6001 \
+              --cidr 10.0.0.0/16
+          else
+            echo "Security Group already exists: $SG_ID"
+          fi
+
+          echo "sg_id=$SG_ID" >> $GITHUB_OUTPUT
+
+      - name: Get latest Ubuntu AMI
+        id: ami
+        run: |
+          AMI_ID=$(aws ec2 describe-images \
+            --owners 099720109477 \
+            --filters "Name=name,Values=ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*" \
+            --query 'sort_by(Images, &CreationDate)[-1].ImageId' \
+            --output text)
+          echo "ami_id=$AMI_ID" >> $GITHUB_OUTPUT
+
+      - name: Check and create EC2 Instance 1 if needed
+        id: ec2-1
+        run: |
+          # Check if instance exists
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=ticketsystem-instance-1" "Name=instance-state-name,Values=running,pending,stopping,stopped" \
+            --query 'Reservations[0].Instances[0].InstanceId' \
+            --output text)
+
+          if [ "$INSTANCE_ID" == "None" ] || [ -z "$INSTANCE_ID" ]; then
+            echo "Creating EC2 Instance 1..."
+            CLOUD_INIT=$(base64 -w 0 cloud-init.yaml)
+
+            INSTANCE_ID=$(aws ec2 run-instances \
+              --image-id ${{ steps.ami.outputs.ami_id }} \
+              --instance-type t2.micro \
+              --key-name deploy \
+              --security-group-ids ${{ steps.sg.outputs.sg_id }} \
+              --subnet-id ${{ steps.vpc.outputs.subnet_id }} \
+              --user-data "$CLOUD_INIT" \
+              --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=ticketsystem-instance-1}]' \
+              --query 'Instances[0].InstanceId' \
+              --output text)
+
+            echo "Waiting for instance to be running..."
+            aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+          else
+            echo "Instance 1 already exists: $INSTANCE_ID"
+            # Start if stopped
+            STATE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].State.Name' --output text)
+            if [ "$STATE" == "stopped" ]; then
+              aws ec2 start-instances --instance-ids $INSTANCE_ID
+              aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+            fi
+          fi
+
+          echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+      - name: Check and create EC2 Instance 2 if needed
+        id: ec2-2
+        run: |
+          # Check if instance exists
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=ticketsystem-instance-2" "Name=instance-state-name,Values=running,pending,stopping,stopped" \
+            --query 'Reservations[0].Instances[0].InstanceId' \
+            --output text)
+
+          if [ "$INSTANCE_ID" == "None" ] || [ -z "$INSTANCE_ID" ]; then
+            echo "Creating EC2 Instance 2..."
+            CLOUD_INIT=$(base64 -w 0 cloud-init.yaml)
+
+            INSTANCE_ID=$(aws ec2 run-instances \
+              --image-id ${{ steps.ami.outputs.ami_id }} \
+              --instance-type t2.micro \
+              --key-name deploy \
+              --security-group-ids ${{ steps.sg.outputs.sg_id }} \
+              --subnet-id ${{ steps.vpc.outputs.subnet_id_2 }} \
+              --user-data "$CLOUD_INIT" \
+              --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=ticketsystem-instance-2}]' \
+              --query 'Instances[0].InstanceId' \
+              --output text)
+
+            echo "Waiting for instance to be running..."
+            aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+          else
+            echo "Instance 2 already exists: $INSTANCE_ID"
+            # Start if stopped
+            STATE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID --query 'Reservations[0].Instances[0].State.Name' --output text)
+            if [ "$STATE" == "stopped" ]; then
+              aws ec2 start-instances --instance-ids $INSTANCE_ID
+              aws ec2 wait instance-running --instance-ids $INSTANCE_ID
+            fi
+          fi
+
+          echo "instance_id=$INSTANCE_ID" >> $GITHUB_OUTPUT
+
+      - name: Get Instance IPs
+        id: ips
+        run: |
+          IP_1=$(aws ec2 describe-instances \
+            --instance-ids ${{ steps.ec2-1.outputs.instance_id }} \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+
+          IP_2=$(aws ec2 describe-instances \
+            --instance-ids ${{ steps.ec2-2.outputs.instance_id }} \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+
+          echo "ip_1=$IP_1" >> $GITHUB_OUTPUT
+          echo "ip_2=$IP_2" >> $GITHUB_OUTPUT
+          echo "Instance 1 IP: $IP_1"
+          echo "Instance 2 IP: $IP_2"
+
+      - name: Check and create Load Balancer if needed
+        id: lb
+        run: |
+          VPC_ID="${{ steps.vpc.outputs.vpc_id }}"
+
+          # Check if load balancer exists
+          LB_ARN=$(aws elbv2 describe-load-balancers \
+            --names ticketsystem-lb \
+            --query 'LoadBalancers[0].LoadBalancerArn' \
+            --output text 2>/dev/null || echo "None")
+
+          if [ "$LB_ARN" == "None" ] || [ -z "$LB_ARN" ]; then
+            echo "Creating Application Load Balancer..."
+            LB_ARN=$(aws elbv2 create-load-balancer \
+              --name ticketsystem-lb \
+              --subnets ${{ steps.vpc.outputs.subnet_id }} ${{ steps.vpc.outputs.subnet_id_2 }} \
+              --security-groups ${{ steps.sg.outputs.sg_id }} \
+              --tags Key=Name,Value=ticketsystem-lb \
+              --query 'LoadBalancers[0].LoadBalancerArn' \
+              --output text)
+
+            # Create target group
+            TG_ARN=$(aws elbv2 create-target-group \
+              --name ticketsystem-tg \
+              --protocol HTTP \
+              --port 6001 \
+              --vpc-id $VPC_ID \
+              --health-check-path /health \
+              --health-check-interval-seconds 30 \
+              --health-check-timeout-seconds 5 \
+              --healthy-threshold-count 2 \
+              --unhealthy-threshold-count 2 \
+              --query 'TargetGroups[0].TargetGroupArn' \
+              --output text)
+
+            # Create listener
+            aws elbv2 create-listener \
+              --load-balancer-arn $LB_ARN \
+              --protocol HTTP \
+              --port 80 \
+              --default-actions Type=forward,TargetGroupArn=$TG_ARN
+
+            # Register targets
+            aws elbv2 register-targets \
+              --target-group-arn $TG_ARN \
+              --targets Id=${{ steps.ec2-1.outputs.instance_id }} Id=${{ steps.ec2-2.outputs.instance_id }}
+          else
+            echo "Load Balancer already exists: $LB_ARN"
+            # Get target group
+            TG_ARN=$(aws elbv2 describe-target-groups \
+              --names ticketsystem-tg \
+              --query 'TargetGroups[0].TargetGroupArn' \
+              --output text)
+          fi
+
+          LB_DNS=$(aws elbv2 describe-load-balancers \
+            --load-balancer-arns $LB_ARN \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text)
+
+          echo "lb_arn=$LB_ARN" >> $GITHUB_OUTPUT
+          echo "tg_arn=$TG_ARN" >> $GITHUB_OUTPUT
+          echo "lb_dns=$LB_DNS" >> $GITHUB_OUTPUT
+          echo "Load Balancer DNS: $LB_DNS"
+
+      - name: Register EC2 Instances as Targets if Needed
+        run: |
+          TG_ARN="${{ steps.lb.outputs.tg_arn }}"
+          INSTANCE_IDS=("${{ steps.ec2-1.outputs.instance_id }}" "${{ steps.ec2-2.outputs.instance_id }}")
+          
+          CURRENT_TARGETS=$(aws elbv2 describe-target-health \
+            --target-group-arn $TG_ARN \
+            --query 'TargetHealthDescriptions[].Target.Id' \
+            --output text)
+
+          for INSTANCE_ID in "${INSTANCE_IDS[@]}"; do
+            if ! echo "$CURRENT_TARGETS" | grep -qw "$INSTANCE_ID"; then
+              echo "Registering $INSTANCE_ID with Target Group..."
+              aws elbv2 register-targets \
+                --target-group-arn $TG_ARN \
+                --targets Id=$INSTANCE_ID
+            else
+              echo "Instance $INSTANCE_ID is already registered"
+            fi
+          done
+
+      - name: Wait for instances to be ready
+        run: |
+          echo "Waiting for instances to be ready for SSH (60 seconds)..."
+          sleep 60
+
+      - name: Deploy to Instance 1
+        run: |
+          IP="${{ steps.ips.outputs.ip_1 }}"
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+
+          # Wait for SSH to be ready
+          echo "Waiting for SSH on $IP..."
+          for i in {1..30}; do
+            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/deploy.pem ubuntu@$IP "echo 'SSH Ready'" 2>/dev/null; then
+              echo "SSH is ready"
+              break
+            fi
+            echo "Attempt $i: SSH not ready yet, waiting..."
+            sleep 10
+          done
+
+          # Login to GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy.pem ubuntu@$IP \
+            "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+
+          # Pull and run the Docker container
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy.pem ubuntu@$IP << EOF
+            # Stop and remove existing container if any
+            docker stop ticketsystem 2>/dev/null || true
+            docker rm ticketsystem 2>/dev/null || true
+
+            # Pull latest image
+            docker pull ghcr.io/${REPO_LOWER}:latest
+
+            # Run the container
+            docker run -d \
+              --name ticketsystem \
+              --restart unless-stopped \
+              -p 6001:6001 \
+              -e PORT=${{ secrets.PORT }} \
+              -e HOST_URL=${{ secrets.HOST_URL }} \
+              -e NODE_ENV=${{ secrets.NODE_ENV }} \
+              -e MONGO_URI=${{ secrets.MONGO_URI }} \
+              ghcr.io/${REPO_LOWER}:latest
+          EOF
+
+      - name: Health check Instance 1
+        run: |
+          IP="${{ steps.ips.outputs.ip_1 }}"
+          echo "Checking health on Instance 1..."
+
+          # Wait for app to start
+          sleep 10
+
+          for i in {1..30}; do
+            if curl -f http://$IP:6001/health; then
+              echo "Instance 1 is healthy!"
+              exit 0
+            fi
+            echo "Attempt $i: Health check failed, waiting..."
+            sleep 10
+          done
+
+          echo "Instance 1 health check failed!"
+          exit 1
+
+      - name: Deploy to Instance 2
+        run: |
+          IP="${{ steps.ips.outputs.ip_2 }}"
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+
+          # Wait for SSH to be ready
+          echo "Waiting for SSH on $IP..."
+          for i in {1..30}; do
+            if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 -i ~/.ssh/deploy.pem ubuntu@$IP "echo 'SSH Ready'" 2>/dev/null; then
+              echo "SSH is ready"
+              break
+            fi
+            echo "Attempt $i: SSH not ready yet, waiting..."
+            sleep 10
+          done
+
+          # Login to GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy.pem ubuntu@$IP \
+            "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+
+          # Pull and run the Docker container
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy.pem ubuntu@$IP << EOF
+            # Stop and remove existing container if any
+            docker stop ticketsystem 2>/dev/null || true
+            docker rm ticketsystem 2>/dev/null || true
+
+            # Pull latest image
+            docker pull ghcr.io/${REPO_LOWER}:latest
+
+            # Run the container
+            docker run -d \
+              --name ticketsystem \
+              --restart unless-stopped \
+              -p 6001:6001 \
+              -e PORT=${{ secrets.PORT }} \
+              -e HOST_URL=${{ secrets.HOST_URL }} \
+              -e NODE_ENV=${{ secrets.NODE_ENV }} \
+              -e MONGO_URI=${{ secrets.MONGO_URI }} \
+              ghcr.io/${REPO_LOWER}:latest
+          EOF
+
+      - name: Health check Instance 2
+        run: |
+          IP="${{ steps.ips.outputs.ip_2 }}"
+          echo "Checking health on Instance 2..."
+
+          # Wait for app to start
+          sleep 10
+
+          for i in {1..30}; do
+            if curl -f http://$IP:6001/health; then
+              echo "Instance 2 is healthy!"
+              exit 0
+            fi
+            echo "Attempt $i: Health check failed, waiting..."
+            sleep 10
+          done
+
+          echo "Instance 2 health check failed!"
+          exit 1
+
+      - name: Display deployment info
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "Deployment Summary"
+          echo "=========================================="
+          echo "Instance 1 IP: ${{ steps.ips.outputs.ip_1 }}"
+          echo "Instance 2 IP: ${{ steps.ips.outputs.ip_2 }}"
+          echo "Load Balancer DNS: ${{ steps.lb.outputs.lb_dns }}"
+          echo "=========================================="
+          echo "Access your application at:"
+          echo "http://${{ steps.lb.outputs.lb_dns }}"
+          echo "=========================================="
