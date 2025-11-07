@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "generate:metrics": "node ./scripts/metrics-to-json.js",
     "test": "jest",
     "test:unit": "jest --testPathIgnorePatterns=integration.test.js",
     "test:integration": "jest integration.test.js",
@@ -33,11 +34,15 @@
     "axios": "^1.12.2",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "express-prom-bundle": "^6.0.0",
     "helmet": "^8.1.0",
+    "logger": "^0.0.1",
     "mongoose": "^8.18.1",
     "morgan": "^1.10.1",
+    "prom-client": "^14.0.0",
     "swagger-autogen": "^2.23.7",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
