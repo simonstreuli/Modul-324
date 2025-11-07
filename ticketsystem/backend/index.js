@@ -27,7 +27,12 @@ app.use((req, res, next) => {
 const metricsMiddleware = promBundle({
   includeMethod: true,
   includePath: true,
-  normalizePath: ['/api/employees', '/api/tickets'],
+  normalizePath: [
+    // Valid tuple: [pattern, replacement]
+    // This replaces MongoDB ObjectId in paths with :id for metrics aggregation
+    ['/api/ticket/[0-9a-fA-F]{24}', '/api/ticket/:id'],
+    ['/api/employee/[0-9a-fA-F]{24}', '/api/employee/:id'],
+  ],
 });
 app.use(metricsMiddleware);
 
