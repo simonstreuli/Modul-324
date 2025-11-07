@@ -6,7 +6,7 @@ const config = require('./config');
 mongoose
   .connect(config.mongoUri)
   .then(() => {
-    app.listen(config.port, () =>
+    app.listen(config.port, '0.0.0.0', () =>
       console.log(`Server running on Port: ${config.port}`)
     );
   })
