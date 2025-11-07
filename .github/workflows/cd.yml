@@ -459,7 +459,7 @@ jobs:
       - name: Create GitHub Deployment
         uses: chrnorm/deployment-action@v2
         with:
-          token: ${{ secrets.GH_PAT_DEPLOY }}
+          token: ${{ secrets.GH_TOKEN }}
           environment: production
           ref: ${{ github.ref }}
           description: 'AWS EC2 deployment'
