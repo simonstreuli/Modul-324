@@ -2,10 +2,6 @@ name: AWS Deployment
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_run:
     workflows: ["CI/CD Pipeline"]
     types:
@@ -23,8 +19,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' || 
       (github.event.workflow_run.conclusion == 'success' && 
-       (github.event.workflow_run.head_branch == 'main' || 
-        github.event.workflow_run.head_branch == 'develop'))
+       (github.event.workflow_run.head_branch == 'main'))
 
     steps:
       - name: Checkout code
@@ -399,32 +394,12 @@ jobs:
               --name ticketsystem \
               --restart unless-stopped \
               -p 6001:6001 \
-              -e PORT=${{ secrets.PORT }} \
-              -e HOST_URL=${{ secrets.HOST_URL }} \
-              -e NODE_ENV=${{ secrets.NODE_ENV }} \
+              -e PORT=${{ vars.PORT }} \
+              -e HOST_URL=${{ vars.HOST_URL }} \
+              -e NODE_ENV=${{ vars.NODE_ENV }} \
               -e MONGO_URI=${{ secrets.MONGO_URI }} \
               ghcr.io/${REPO_LOWER}:latest
           EOF
-
-      - name: Health check Instance 1
-        run: |
-          IP="${{ steps.ips.outputs.ip_1 }}"
-          echo "Checking health on Instance 1..."
-
-          # Wait for app to start
-          sleep 10
-
-          for i in {1..30}; do
-            if curl -f http://$IP:6001/health; then
-              echo "Instance 1 is healthy!"
-              exit 0
-            fi
-            echo "Attempt $i: Health check failed, waiting..."
-            sleep 10
-          done
-
-          echo "Instance 1 health check failed!"
-          exit 1
 
       - name: Deploy to Instance 2
         run: |
@@ -460,32 +435,12 @@ jobs:
               --name ticketsystem \
               --restart unless-stopped \
               -p 6001:6001 \
-              -e PORT=${{ secrets.PORT }} \
-              -e HOST_URL=${{ secrets.HOST_URL }} \
-              -e NODE_ENV=${{ secrets.NODE_ENV }} \
+              -e PORT=${{ vars.PORT }} \
+              -e HOST_URL=${{ vars.HOST_URL }} \
+              -e NODE_ENV=${{ vars.NODE_ENV }} \
               -e MONGO_URI=${{ secrets.MONGO_URI }} \
               ghcr.io/${REPO_LOWER}:latest
           EOF
-
-      - name: Health check Instance 2
-        run: |
-          IP="${{ steps.ips.outputs.ip_2 }}"
-          echo "Checking health on Instance 2..."
-
-          # Wait for app to start
-          sleep 10
-
-          for i in {1..30}; do
-            if curl -f http://$IP:6001/health; then
-              echo "Instance 2 is healthy!"
-              exit 0
-            fi
-            echo "Attempt $i: Health check failed, waiting..."
-            sleep 10
-          done
-
-          echo "Instance 2 health check failed!"
-          exit 1
 
       - name: Display deployment info
         if: always()
