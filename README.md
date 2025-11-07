@@ -61,3 +61,5 @@ Ein Frontend wird nicht implementiert.
 **Aufgaben**
 
 - Siehe [Aufgaben](./Aufgaben/)
+
+---
