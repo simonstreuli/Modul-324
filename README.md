@@ -21,10 +21,10 @@ Ein Frontend wird nicht implementiert.
 
 ## Projekt/Technologie Entscheidung
 
-- **Programmiersprache:** Java
-- **Framework:** Spring Boot (REST API, Security, Tests)
+- **Programmiersprache:** JavaScript
+- **Framework:** Express.js
 - **Datenbank:** MongoDB (Cloud: Atlas / lokal: Docker-Image)
-- **Tests:** JUnit & Spring Test
+- **Tests:** Jest
 
 ---
 
