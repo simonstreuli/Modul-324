@@ -224,10 +224,6 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        with:
-          token: ${{ secrets.PAGES_PAT }}
-          enablement: 'true'
-        continue-on-error: true
 
       - name: Upload artifact to Pages
         uses: actions/upload-pages-artifact@v3
