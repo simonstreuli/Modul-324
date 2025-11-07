@@ -1,5 +1,7 @@
 # Projekt Setup und Infrastruktur
 
+[![CI/CD Pipeline](https://github.com/simonstreuli/Modul-324/actions/workflows/ci.yml/badge.svg)](https://github.com/simonstreuli/Modul-324/actions/workflows/ci.yml)
+
 ## Projekt: Ticketsystem
 
 Wir entwickeln ein **Ticketsystem** basierend auf **Spring Boot** als Backend und **MongoDB** als Datenbank.
