@@ -1,0 +1,35 @@
+#cloud-config
+users:
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin, docker
+    home: /home/ubuntu
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCu78/mu26M0HdnAvAmXqWSebWZEl0FpSsNO8bpHEnhUMQ2NyZkqs+PrEaIbmbebGqblBw47cKM+b/qYIS9wL1gqBPHSujisINbpI5cWrZhA0MicLUmSj9cnTjYAJ6EqBUwiLCDSa3zqB12Djs+gqPOb9NE4erTMYVnhU3buQjDQLSasKLlbwAPaP08a8rwMTOCkF7rwk5rQSEQCSixRRQE08sadailCfKMU+R590AfrVsve2K1iItjBbBtu0rS39DWMQ909ytd5o+8pYYvxEq7UERl2hZMYKeeHCtemQeiKXEPEAuV6wQ2Xr/ievqYEKTJBFvNDd0Ce36rblVEDJQh bourbian
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnyf6UoDHonHDVPXsxGQQYMNCV/ramCXLFBW1bbbziDKWDtVZLDgd1c3cRRzGblsPurW7/du6gbF1/c5/OwzI4fsXXYZIvBUQYiipcg/Jtk8c/rhZXSRcaZBT+u8+gBOFMiy0Ubv/MKTI8z7JAnbI5QAA8qRYu84lKtzcvYaVzRUvKSbV5VVKRlh/BYwvxeajWArZMIO2l+KXrtu5Q0WqlNuXKD9DAGgIW+P5NT3WGk2yzTNnSs3fT02CS/2F+RR7LsWi0Em3egKKLtEJb3qS7cxtLcDc4HG3HYsBx1eWZ8AOgGXVHbBJBwBNyloTI0gGZr6yZCygsyVLhJw8B2VWb DEPLOY
+ssh_pwauth: false
+disable_root: false
+package_update: true
+package_upgrade: true
+groups:
+  - docker
+system_info:
+  default_user:
+    groups: [docker]
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+final_message: "The system is finally up, after $UPTIME seconds"
+runcmd:
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker ubuntu
