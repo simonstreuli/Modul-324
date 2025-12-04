@@ -104,36 +104,36 @@ chmod +x build-all.sh
 
 ```bash
 cd KN_03_RabbitMQ
-docker-compose up --build
+docker compose up --build
 ```
 
 ### Run Individual Tasks
 
 #### Task A Only
 ```bash
-docker-compose -f docker-compose-task-a.yml up --build
+docker compose -f docker-compose-task-a.yml up --build
 ```
 
 #### Task B Only
 ```bash
-docker-compose -f docker-compose-task-b.yml up --build
+docker compose -f docker-compose-task-b.yml up --build
 ```
 
 #### Task C Only
 ```bash
-docker-compose -f docker-compose-task-c.yml up --build
+docker compose -f docker-compose-task-c.yml up --build
 ```
 
 ### Stopping Services
 
 ```bash
 # Stop all services
-docker-compose down
+docker compose down
 
 # Or for individual tasks
-docker-compose -f docker-compose-task-a.yml down
-docker-compose -f docker-compose-task-b.yml down
-docker-compose -f docker-compose-task-c.yml down
+docker compose -f docker-compose-task-a.yml down
+docker compose -f docker-compose-task-b.yml down
+docker compose -f docker-compose-task-c.yml down
 ```
 
 ## Monitoring
@@ -155,21 +155,21 @@ Here you can:
 
 ```bash
 # View logs for all services
-docker-compose logs -f
+docker compose logs -f
 
 # View logs for specific service
-docker-compose logs -f task-a-sender
-docker-compose logs -f task-a-receiver
+docker compose logs -f task-a-sender
+docker compose logs -f task-a-receiver
 
 # For individual task compose files
-docker-compose -f docker-compose-task-a.yml logs -f
+docker compose -f docker-compose-task-a.yml logs -f
 ```
 
 ## Testing Scenarios
 
 ### Task A: Message Persistence
 
-1. Start the services: `docker-compose -f docker-compose-task-a.yml up`
+1. Start the services: `docker compose -f docker-compose-task-a.yml up`
 2. Observe messages being sent and received
 3. Stop the receiver: `docker stop task-a-receiver`
 4. Wait for a few messages to be sent (check sender logs)
@@ -178,7 +178,7 @@ docker-compose -f docker-compose-task-a.yml logs -f
 
 ### Task B: Broadcasting
 
-1. Start the services: `docker-compose -f docker-compose-task-b.yml up`
+1. Start the services: `docker compose -f docker-compose-task-b.yml up`
 2. Observe both receivers getting the same messages
 3. Stop one receiver
 4. Verify the other receiver still gets all messages
@@ -187,12 +187,12 @@ docker-compose -f docker-compose-task-a.yml logs -f
 
 ### Task C: Load Balancing
 
-1. Start the services: `docker-compose -f docker-compose-task-c.yml up`
+1. Start the services: `docker compose -f docker-compose-task-c.yml up`
 2. Observe messages being distributed among 3 receiver instances
 3. Each message goes to only one instance (check INSTANCE_ID in logs)
 4. Stop one instance: `docker stop task-c-receiver-2`
 5. Verify remaining instances continue processing messages
-6. Scale up: `docker-compose -f docker-compose-task-c.yml up --scale receiver-1=5`
+6. Scale up: `docker compose -f docker-compose-task-c.yml up --scale receiver-1=5`
 
 ## Architecture Details
 
@@ -242,13 +242,13 @@ All applications log:
 ## Troubleshooting
 
 ### Applications Can't Connect to RabbitMQ
-- Ensure RabbitMQ container is healthy: `docker-compose ps`
-- Check RabbitMQ logs: `docker-compose logs rabbitmq`
+- Ensure RabbitMQ container is healthy: `docker compose ps`
+- Check RabbitMQ logs: `docker compose logs rabbitmq`
 - Verify network connectivity: `docker network ls`
 
 ### Messages Not Being Received
 - Check RabbitMQ Management UI for queue status
-- Verify receiver is running: `docker-compose ps`
+- Verify receiver is running: `docker compose ps`
 - Check receiver logs for errors
 
 ### Build Failures
