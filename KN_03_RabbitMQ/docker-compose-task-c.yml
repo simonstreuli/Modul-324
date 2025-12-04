@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq-task-c
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - task-c-network
+
+  sender:
+    build:
+      context: ./task-c-sender
+      dockerfile: Dockerfile
+    container_name: task-c-sender
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - task-c-network
+    restart: unless-stopped
+
+  receiver-1:
+    build:
+      context: ./task-c-receiver
+      dockerfile: Dockerfile
+    container_name: task-c-receiver-1
+    environment:
+      INSTANCE_ID: "1"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - task-c-network
+    restart: unless-stopped
+
+  receiver-2:
+    build:
+      context: ./task-c-receiver
+      dockerfile: Dockerfile
+    container_name: task-c-receiver-2
+    environment:
+      INSTANCE_ID: "2"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - task-c-network
+    restart: unless-stopped
+
+  receiver-3:
+    build:
+      context: ./task-c-receiver
+      dockerfile: Dockerfile
+    container_name: task-c-receiver-3
+    environment:
+      INSTANCE_ID: "3"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - task-c-network
+    restart: unless-stopped
+
+networks:
+  task-c-network:
+    driver: bridge
